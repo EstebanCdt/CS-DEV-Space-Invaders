@@ -1,34 +1,37 @@
-#CHARPENAY Arthur
-#21/12/20
+"""
+CHARPENAY Arthur CADET Esteban
+21/12/20
 
-#CS-DEV: SPACE INVADERS
-#Ce programme respecte les règles de base du jeu 'Space Invader' indiquées dans le sujet.
+CS-DEV: SPACE INVADERS
+Ce programme respecte les règles de base du jeu 'Space Invader' indiquées dans le sujet.
 
-#CONTROLES: 
-#   JOUEUR: [GAUCHE/DROITE/TIR]: flèche gauche / flèche droite / barre d'espace
-#   ENNEMI SPECIAL: [HAUT/BAS/GAUCHE/DROITE/TIR]: z / s / q / d / w
+CONTROLES: 
+   JOUEUR: [GAUCHE/DROITE/TIR]: flèche gauche / flèche droite / barre d'espace
+   ENNEMI SPECIAL: [HAUT/BAS/GAUCHE/DROITE/TIR]: z / s / q / d / w
 
-#MENU: 
-#   - GAME: Restart(Relance une partie) / Quit(Ferme le jeu)
-#   - CREDITS: A propos(Affiche les credits)
+MENU: 
+   - GAME: Restart(Relance une partie) / Quit(Ferme le jeu)
+   - CREDITS: A propos(Affiche les credits)
 
-#BUTTONS:
-#   - Start Game: Démarre un jeu ou redémarre un autre si aucun jeu n'est en cours
-#   - Quit: Ferme le jeu
+BUTTONS:
+   - Start Game: Démarre un jeu ou redémarre un autre si aucun jeu n'est en cours
+   - Quit: Ferme le jeu
 
-#STRUCTURE PROGRAMME:
-#   IMPORTS / CLASSE / FONCTIONs / TKINTER
+RATTRAPAGES:
+   Esteban Cadet: Rattrapage du vendredi 18 décembre. Tapez "Rattrapage" pour voir les lignes de code
 
-#Git: 
-#Codé en Anglais
+STRUCTURE PROGRAMME:
+   IMPORTS / CLASSE / FONCTIONS / TKINTER
 
-#_____________________________________________________________________________________________________
-
+Git: https://github.com/Arthur-Cpn/CS-DEV-Space-Invaders.git
+Codé en Anglais
+"""
 
 
 # -- IMPORTS --
 import random as rd
-import numpy as np
+import tkinter as TK
+import winsound  #Sous windows uniquement (Rattrapage)
 
 another = 0      #indicator of a game reloading
 start = 0        #start trigger
@@ -38,6 +41,15 @@ info = 0         #indicator of shown info
 
 # -- CLASS --
 class interact:
+
+    #Sound
+    def __init__(self):
+        self.sounds = {
+            'shot': mixer
+        }
+    def play(self, name):
+        self.sound[name].play()
+
     #Initialization
     def __init__(self, id, coords):
         self.coords = coords
@@ -45,6 +57,14 @@ class interact:
 
     #Create and display instance chosen by [indicator] (str)
     def create(self, indicator):
+        if (indicator == "enemy_boss"):
+            self.id = C1.create_image(10,10, anchor = NW, image = enemy_boss_ship)
+            C1.coords(self.id, self.coords[0], self.coords[1])
+
+        if (indicator == "enemy_solo"):                                                         #(Rattrapage)
+            self.id = C1.create_image(10,10, anchor = NW, image = enemy_solo_ship)              #(Rattrapage)
+            C1.coords(self.id, self.coords[0], self.coords[1])                                  #(Rattrapage)
+
         if (indicator == "bullet"):
             self.id = C1.create_image(10, 10, anchor = NW, image = player_shot)
             C1.coords(self.id, self.coords[0], self.coords[1])
@@ -89,13 +109,15 @@ class interact:
 #Fonction initializing the game, launching the heart
 def initialising():
 
-    #If a game isn't on already
-    global start, results, another, lives, step, way, fire, bullet_trigger, laser_shot, score, L, info, fire_s
+    #If a game isn't on already (Rattrapage)
+    global start, results, another, lives, step, boss_step, solo_step, way, fire, bullet_trigger, laser_shot, score, L, info, fire_s
     if ((another == 1) | (start == 0)):
 
         #Set variables
         fire = 0           #indicator of an ongoing fire
         step = 3           #enemy horizontal dash value
+        boss_step = -6     #boss enemy horizontal dash value
+        solo_step = -2     #solo enemy horizontal dash value (Rattrapage)
         way = 0            #indicator of a complete round-trip
         bullet_trigger= 0  #indicator of a bullet trigger
         laser_shot = 0     #indicator of a laser on canvas
@@ -134,6 +156,12 @@ def initialising():
                 for j in range (0,10):
                     eval("enemy_"+str(j+i*10)).set(100+j*50, 50+i*50)
             
+            #Boss enemy set
+            enemy_boss.set(2000,10)
+
+            #Solo enemy set (Rattrapage)
+            enemy_solo.set(1500,70)
+
             #Special enemy set
             enemy_s.set(30, 30)
 
@@ -168,7 +196,7 @@ def info():
             C1.delete(results)
         
         #Show the credits
-        results = C1.create_text(450, 460, fill = "Orange", text = "Credits: Charpenay Arthur - CPE Lyon", font = ('Arial', '25'))
+        results = C1.create_text(390, 460, fill = "Orange", text = "Credits: Charpenay Arthur Cadet Esteban - CPE Lyon", font = ('Arial', '20'))
         info = 1 
 
 #Function that sets the controls over the player and special enemy
@@ -192,10 +220,10 @@ def control(event):
         if touche == "space":
             bullet.set(player.coords[0]+10, player.coords[1]-25)
             fire = 1  #Trigger indicating a shot ongoing
-
+            winsound.PlaySound("laser.wav",winsound.SND_ASYNC)                                #(Rattrapage)
 
         #SPECIAL
-        ##Left dash 
+        #Left dash 
         if ((touche == "q") and (enemy_s.coords[0]>0)):
             enemy_s.refresh(-30, 0)
             
@@ -215,10 +243,30 @@ def control(event):
         if touche == "w":
             laser_s.set(enemy_s.coords[0]+10, enemy_s.coords[1]+25)
             fire_s = 1  #Trigger indicating a special shot ongoing
-        
+
 #Function processing the whole game at every heartbeat
 def heart():
-    global step, fire, way, another, results, lives, bullet_trigger, laser_shot, score, fire_s
+    global step, boss_step, fire, way, another, results, lives, bullet_trigger, laser_shot, score, fire_s
+
+    #For solo enemy (Rattrapage)
+    enemy_solo = eval("enemy_solo")
+    
+    #Refresh boss enemy position (dash)
+    enemy_solo.refresh(solo_step, 0)
+
+    #For boss enemy
+    enemy_boss = eval("enemy_boss")
+
+    #Right border collision
+    if ((int(enemy_boss.coords[0]) > 730) & (int(enemy_boss.coords[0]) < 760)):
+        boss_step = -6
+    
+    #Left border collision
+    if ((int(enemy_boss.coords[0] < 10 ) & (int(enemy_boss.coords[0]) > 0))):
+        boss_step = 6
+    
+    #Refresh boss enemy position (dash)
+    enemy_boss.refresh(boss_step, 0)
 
     #For each enemy
     for i in range (0, 50):
@@ -279,11 +327,22 @@ def heart():
                     bullet.set(-10, 10)
                     score += 500
                     l2.configure(text = "Score: "+str(score))
+                if ((abs(bullet.coords[0] - enemy_boss.coords[0]) < 30) & ((abs(bullet.coords[1] - enemy_boss.coords[1]) < 30))):
+                    enemy_boss.set(2000,2000)
+                    bullet.set(-10,10)
+                    score += 300
+                    l2.configure(text = "Score: "+str(score))
+                if ((abs(bullet.coords[0] - enemy_solo.coords[0]) < 30) & ((abs(bullet.coords[1] - enemy_solo.coords[1]) < 30))): #(Rattrapage)
+                    enemy_solo.set(2000,2000)                                                                                     #(Rattrapage)
+                    bullet.set(-10,10)                                                                                            #(Rattrapage)
+                    score += 500                                                                                                  #(Rattrapage)
+                    l2.configure(text = "Score: "+str(score))                                                                     #(Rattrapage)
 
                 #If every enemy is shot down
                 if (len(L) == 0):
                     another = 1
                     results = C1.create_text(430, 250, fill = "green", text = "You won\n"+"Score: "+str(score), font = ('Arial', '35'))
+                    
                     return
                 
             #If the bullet touches a block, delete both
@@ -317,10 +376,12 @@ def heart():
             laser.set(-40, -40)
             l3.configure(text = "Lives: "+str(lives))
             laser_shot = 0
+            winsound.PlaySound("hit.wav",winsound.SND_ASYNC)                                                         #(Rattrapage)
         if ((abs(laser_s.coords[0] - player.coords[0]) < 30) & (abs(laser_s.coords[1] - player.coords[1]) < 30)):
             lives -= 1
             laser_s.set(-40, -40)
             l3.configure(text = "Lives: "+str(lives))
+            winsound.PlaySound("hit.wav",winsound.SND_ASYNC)                                                         #(Rattrapage)  
 
         #If the laser reaches the bottom, delete it
         if(laser.coords[1] > 473):
@@ -343,7 +404,10 @@ def heart():
                 fire_s = 0
 
     #If no lives remain, show results and stop the heart
-    if (lives == 0):
+    if (lives <= 0):                                                #(Rattrapage correction bug)
+        lives = 0                                                   #(Rattrapage correction bug)
+        l3.configure(text = "Lives: "+str(lives))                   #(Rattrapage correction bug)
+        
         for i in range(0, 50):
             eval("enemy_"+str(i)).set(1000, 1000)
         another = 1  #Indicates a game has been done
@@ -353,7 +417,6 @@ def heart():
 
     #Start another heartbeat
     w.after(50, heart)
-
 
 
 
@@ -402,6 +465,8 @@ C1 = Canvas(w, width = 800, height = 500)
 
 #Images
 P = PhotoImage(file = "Wallpaper.png")
+enemy_boss_ship = PhotoImage(file="enemy_boss_ship.png")
+enemy_solo_ship = PhotoImage(file="enemy_solo_ship.png") #(Rattrapage)                    
 player_ship = PhotoImage(file="player_ship.png")
 enemy_ship = PhotoImage(file="enemy_ship.png")
 enemy_s_ship = PhotoImage(file="enemy_s_ship.png")
@@ -410,6 +475,13 @@ player_shot = PhotoImage(file="player_shot.png")
 block = PhotoImage(file="block.png")
 C1.create_image(400, 250, image = P)
 
+#Boss set
+vars()["enemy_boss"] = interact("enemy_boss", (2000,10))
+vars()["enemy_boss"].create("enemy_boss")
+
+#Solo set (Rattrapage)
+vars()["enemy_solo"] = interact("enemy_solo", (1500,70))
+vars()["enemy_solo"].create("enemy_solo")
 
 #Player set
 vars()["player"] = interact("player", (0, 460))
@@ -470,6 +542,5 @@ B1.pack(side = 'top', padx = 30, pady = 20)
 
 B2 = Button(f1_1_1, text = "QUIT", bg = 'gray52', fg = 'white', pady = 10, padx = 10, activebackground = 'firebrick', command = quit)
 B2.pack(side = 'bottom', padx = 30, pady = 20)
-
 
 w.mainloop()
